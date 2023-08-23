@@ -1,0 +1,22 @@
+module bridge_top(input hclk,hresetn,hwriten,hready_in,
+input [1:0] htrans,
+input [31:0] hwdata,
+input [31:0] haddr,
+input [31:0] pr_data,
+output penable,pwrite,hr_readyout,
+output [2:0] psel,
+output [1:0] hresp,
+output [31:0] paddr,
+output [31:0] pwdata,
+output [31:0] hr_data);
+wire [31:0] hwdata_1,hwdata_2,haddr_1,haddr_2;
+wire hwrite_reg,hwrite_reg1;
+wire [2:0]temp_selx;
+wire valid;
+
+
+
+ahb_slave AHB_SL (hclk,hresetn,hwriten,hready_in,htrans,hwdata,haddr,pr_data,valid,hwrite_reg,hwrite_reg1,haddr_1,haddr_2,hwdata_1,hwdata_2,hr_data,temp_selx );
+
+apb_controller APB_C (hclk,hresetn,hwrite_reg,hwrite_reg1,hwriten,valid,haddr,hwdata,hwdata_1,hwdata_2,haddr_1,haddr_2,pr_data,temp_selx,penable,pwrite,hr_readyout,psel,paddr,pwdata);
+endmodule
