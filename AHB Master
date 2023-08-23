@@ -1,0 +1,101 @@
+module ahb_master (input hclk,hresetn,hr_readyout,
+input [31:0] hr_data,
+output reg [31:0] haddr,
+output reg [31:0] hwdata,
+output reg hwriten,hready_in,
+output reg [1:0] htrans);
+
+reg [2:0] hburst; //single ,4,16,...
+reg [2:0] hsize;  //size 8,16,....
+integer i=0;
+
+//write
+task single_write();
+begin
+  @(posedge hclk)
+  #1;
+  begin
+    hwriten=1; //since write
+    htrans=2'd2 ;
+    hsize=0;
+    hburst=0; //single write
+    hready_in=1;
+    haddr=32'h8000_0000;
+  end
+
+  @(posedge hclk)
+  #1;
+    begin
+     hwdata=32'h24;
+     htrans=2'd0; 
+    end
+end
+endtask
+
+
+//read
+task single_read();
+  begin
+    @(posedge hclk)
+    #1;
+    begin
+      hwriten=0; //since read
+      htrans=2'd2 ;
+      hsize=0;
+      hburst=0; //single read
+      hready_in=1;
+      haddr=32'h8000_0000;
+    end
+
+    @(posedge hclk)
+    #1;
+    begin
+      htrans=2'd0;
+    end
+  end 
+endtask
+
+
+//incr_write
+task burst_4_incr_write();
+  begin
+     @(posedge hclk)
+     #1;
+     begin
+       hwriten=1;
+       htrans=2'd2;
+       hsize=0;
+       hburst=3'd1;
+       hready_in=1;
+       haddr=32'h8000_0000;
+     end
+ 
+     @(posedge hclk)
+     #1;
+     begin
+       haddr=haddr+1;
+       hwdata={$random}%256;
+       htrans=2'd3;
+     end
+
+     for(i=0;i<2;i=i+1)
+     begin
+        @(posedge hclk)
+        #1;
+        begin
+          haddr=haddr+1;
+          hwdata={$random}%256;
+          htrans=2'd3;
+        end
+        @(posedge hclk);
+     end
+ 
+      @(posedge hclk)
+      #1;
+      begin
+         hwdata={$random}%256;
+         htrans=2'd0;
+      end
+  end
+endtask
+endmodule
